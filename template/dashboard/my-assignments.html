@@ -1,0 +1,98 @@
+{% extends 'layout/layout.html' %}
+
+{% block title %}
+    
+{% endblock  %}
+
+{% block content %}
+<section class="vh-100" style="background-color: #eee;">
+    <div class="container py-5 h-100">
+      <div class="row d-flex justify-content-center align-items-center h-100">
+        <div class="col-md-12 col-xl-10">
+  
+          <div class="card">
+            <div class="card-header p-3">
+              <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Task List</h5>
+            </div>
+            <div class="card-body" id="task-list" data-mdb-perfect-scrollbar="true" style="position: relative; height: 400px; overflow-y: auto;">
+  
+              <table class="table mb-0">
+                <thead>
+                  <tr>
+                    <th scope="col">Task</th>
+                    <th scope="col">Priority</th>
+                    <th scope="col">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for data in data1 %}
+                  <tr class="fw-normal">
+                    <td class="align-middle">
+                      <span>{{ data['task'] }}</span>
+                    </td>
+                    <td class="align-middle">
+                      {% if data['priority'] == 'low' %}
+                        <h6 class="mb-0"><span class="badge bg-success">Low priority</span></h6>
+                      {% elif data['priority'] == 'medium' %}
+                        <h6 class="mb-0"><span class="badge bg-warning">Medium priority</span></h6>
+                      {% else %}
+                        <h6 class="mb-0"><span class="badge bg-danger">High priority</span></h6>
+                      {% endif %}
+                    </td>
+                    <td class="align-middle">
+                      <a href="" title="Done"><i
+                          class="fas fa-check text-success me-3"></i></a>
+                      <a href="" title="Remove"><i
+                          class="fas fa-trash-alt text-danger"></i></a>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+  
+            </div>
+            <div class="card-footer text-end p-3">
+              <a href="{{ url_for('postAssignments') }}"><button class="btn btn-primary">Add Task</button></a>
+            </div>
+          </div>
+  
+          <!-- Loader to show while fetching new data -->
+          <div id="loading" class="text-center mt-3" style="display:none;">
+            <span>Loading...</span>
+          </div>
+  
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    var page = 1;
+    var total = {{ total }};
+    var limit = {{ limit }};
+    
+    // Infinite scroll logic
+    document.getElementById("task-list").addEventListener("scroll", function() {
+      var element = document.getElementById("task-list");
+      if (element.scrollHeight - element.scrollTop === element.clientHeight && page * limit < total) {
+        loadMoreTasks();
+      }
+    });
+
+    function loadMoreTasks() {
+      document.getElementById("loading").style.display = "block";
+      page += 1;
+      fetch("/myassignments?page=" + page)
+        .then(response => response.text())
+        .then(html => {
+          var newTasks = new DOMParser().parseFromString(html, 'text/html').querySelector('#task-list tbody').innerHTML;
+          document.querySelector('#task-list tbody').innerHTML += newTasks;
+          document.getElementById("loading").style.display = "none";
+        })
+        .catch(err => {
+          console.log('Error loading more tasks: ', err);
+          document.getElementById("loading").style.display = "none";
+        });
+    }
+  </script>
+{% endblock %}
